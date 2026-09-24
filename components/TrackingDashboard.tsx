@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import Header from "./Header";
 import SimulationBar from "./SimulationBar";
@@ -24,26 +24,21 @@ function normalizeTrackingNumber(value: string) {
     .toUpperCase();
 }
 
-export default function TrackingDashboard() {
-  // const [trackingNumber, setTrackingNumber] = useState(
-  //   "9400110200883920182344"
-  // );
+type Props = {
+  orderId?: string;
+};
 
-  const [trackingNumber, setTrackingNumber] = useState(() => {
-    if (typeof window === "undefined") {
-      return "9400110200883920182344";
-    }
+const DEFAULT_ORDER_ID = "9400110200883920182344";
 
-    const params = new URLSearchParams(
-      window.location.search
-    );
+export default function TrackingDashboard({ orderId }: Props) {
+  const normalizedOrderId = orderId
+    ? normalizeTrackingNumber(orderId)
+    : DEFAULT_ORDER_ID;
 
-    return (
-      params.get("order") ??
-      "9400110200883920182344"
-    );
-  });
+  const initialOrder = orders[normalizedOrderId];
 
+  const [trackingNumber, setTrackingNumber] =
+    useState(normalizedOrderId);
 
   const [stateOverride, setStateOverride] =
     useState<TrackingState | null>(null);
@@ -51,27 +46,14 @@ export default function TrackingDashboard() {
   const [drawer, setDrawer] =
     useState<DrawerType>(null);
 
-  const order = useMemo(() => {
-    return orders[normalizeTrackingNumber(trackingNumber)];
-  }, [trackingNumber]);
+  const order = orders[trackingNumber];
 
-  const state = stateOverride ?? order?.state ?? "not_scanned";
+  const state =
+    stateOverride ??
+    order?.state ??
+    "not_scanned";
 
   const config = stateConfigs[state];
-
-  // const searchOrder = (value: string) => {
-  //   const normalized = normalizeTrackingNumber(value);
-
-  //   const found = orders[normalized];
-
-  //   if (!found) {
-  //     alert("Order not found.");
-  //     return;
-  //   }
-
-  //   setTrackingNumber(normalized);
-  //   setStateOverride(null);
-  // };
 
   const searchOrder = (value: string) => {
     const normalized = normalizeTrackingNumber(value);
@@ -91,6 +73,8 @@ export default function TrackingDashboard() {
   };
 
   const share = async () => {
+    if (!order) return;
+
     const data = {
       title: `Track Shipment ${order.orderNumber}`,
       text: `Tracking my ${order.carrier} package on TrackPulse PRO`,
@@ -108,7 +92,7 @@ export default function TrackingDashboard() {
     }
   };
 
-  if (!order) {
+  if (!order || !initialOrder) {
     return (
       <div className="min-h-screen bg-surface">
         <Header
