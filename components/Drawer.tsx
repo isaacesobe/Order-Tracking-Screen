@@ -1,0 +1,25 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { DrawerType } from "./types";
+import Icon from "./Icon";
+
+const content: Record<Exclude<DrawerType, null>, {title:string;icon:string;body:string}> = {
+  instructions:{title:"Update Delivery Instructions",icon:"notes",body:"Tell the driver where and how you want the package dropped off."},
+  hold:{title:"Hold at Pickup Locker",icon:"storefront",body:"Select an Apex Secure Locker within 3 miles of your shipping destination."},
+  damage:{title:"Report Damaged Contents",icon:"report_problem",body:"Describe the damage and we will initiate a carrier claim."},
+  vacation:{title:"Vacation Hold Request",icon:"hotel",body:"Choose how long you want delivery paused while you are away."},
+  dispute:{title:"Open Dispute / Claim",icon:"assignment_late",body:"Provide details so the carrier investigation can begin."},
+  proof:{title:"Proof of Delivery Photo",icon:"photo_camera",body:"Delivery photo preview is available in this prototype."},
+  reschedule:{title:"Reschedule Delivery",icon:"event_repeat",body:"Select a preferred delivery date for the shipment."},
+  delay_inquiry:{title:"Delay Details",icon:"warning",body:"The shipment was delayed by a weather interruption on the Midwest corridor."},
+  missing:{title:"Package Not Received",icon:"help",body:"Start a missing-package investigation with the carrier."}
+};
+
+export default function Drawer({type,onClose}:{type:DrawerType;onClose:()=>void}) {
+  const [value,setValue] = useState("Gate code #4921, place behind front porch planter box.");
+  useEffect(()=>{document.body.style.overflow=type?"hidden":""; return ()=>{document.body.style.overflow=""}},[type]);
+  if(!type) return null;
+  const c=content[type];
+  return <div className="fixed inset-0 z-[60]"><button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-ink/40 backdrop-blur-sm"/><aside className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col justify-between overflow-y-auto bg-white p-5 shadow-2xl sm:p-8"><div><div className="flex items-center justify-between"><div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary-fixed text-secondary"><Icon name={c.icon} className="text-lg"/></div><h3 className="text-lg font-semibold">{c.title}</h3></div><button onClick={onClose} className="rounded-lg p-1.5 hover:bg-surface-container"><Icon name="close"/></button></div><div className="mt-7 space-y-4"><p className="text-sm text-muted">{c.body}</p>{type==="instructions" && <><label className="block"><span className="font-inter text-[10px] font-bold uppercase text-outline">Driver Drop-Off Instruction</span><textarea rows={4} value={value} onChange={e=>setValue(e.target.value)} className="mt-1 w-full rounded-lg bg-surface-low p-3 text-sm outline-none focus:ring-2 focus:ring-secondary"/></label><label className="block"><span className="font-inter text-[10px] font-bold uppercase text-outline">Safe Drop Spot Preference</span><select className="mt-1 w-full rounded-lg bg-surface-low p-3 text-sm outline-none"><option>Front Porch / Behind Planter</option><option>Building Reception / Concierge</option><option>Side Garage Entrance</option><option>Deliver to Neighbor</option></select></label></>}{type==="hold" && <div className="space-y-2">{["Apex Locker Hub - Lincoln Park","Apex Center - Michigan Ave"].map((x,i)=><button key={x} className={`flex w-full items-center justify-between rounded-lg bg-surface-container p-3 text-left ${i===0?"border-2 border-secondary":""}`}><span><strong className="block text-sm">{x}</strong><small className="text-xs text-muted">{i===0?"2200 N Halsted St (0.6 mi away) • 24/7 Access":"645 N Michigan Ave (1.2 mi away) • 8am - 9pm"}</small></span><Icon name={i===0?"radio_button_checked":"radio_button_unchecked"} className={i===0?"text-secondary": "text-outline"}/></button>)}</div>}{type==="proof" && <div className="flex h-64 items-center justify-center rounded-xl bg-surface-low text-muted"><Icon name="photo_camera" className="mr-2"/> Delivery photo preview</div>}{type!=="instructions" && type!=="hold" && type!=="proof" && <textarea rows={5} placeholder="Add details..." className="w-full rounded-lg bg-surface-low p-3 text-sm outline-none focus:ring-2 focus:ring-secondary"/>}<div className="flex items-center gap-2 rounded-lg bg-secondary/10 p-3 text-xs text-secondary"><Icon name="schedule" className="text-sm"/> Updates are simulated and remain local to this prototype.</div></div></div><div className="flex justify-end gap-2 pt-6"><button onClick={onClose} className="rounded-lg bg-surface-container px-4 py-2.5 text-xs font-semibold">Cancel</button><button onClick={()=>{alert("Update saved successfully.");onClose()}} className="rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-white">Save Changes</button></div></aside></div>;
+}
